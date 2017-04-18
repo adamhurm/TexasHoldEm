@@ -1,29 +1,111 @@
+#for every card c in Hand H, x = c % 13
+#royal_flush = [12, 11, 10, 9, 8] and same_suit
+#straight_flush = straight and same_suit
+#four_of_kind = [x, x, x, x, y]
+#full_house = three_of_kind and pair
+#flush = same_suit
+#straight = [x, x+1, x+2, x+3, x+4]
+#three_of_kind = [x, x, x, y, z]
+#pair = [x, x, y, z, a]
+#same_suit = (c / 13) == y
+#high_card = max(H)
+
+#Keeping the above for now but we can probably remove soon
+
+hands = {'royal_flush' : [[51, 50, 49, 48, 47], [39, 38, 37, 36, 35, 34], [25, 24, 23, 22, 21], [12, 11, 10, 9, 8]], \
+        'straight_flush' : [[0, 1, 2, 3, 4], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], \
+            [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12], [13, 14, 15, 16, 17], [14, 15, 16, 17, 18], [15, 16, 17, 18, 19], \
+            [16, 17, 18, 19, 20], [17, 18, 19, 20, 21], [18, 19, 20, 21, 22], [19, 20, 21, 22, 23], [20, 21, 22, 23, 24], [21, 22, 23, 24, 25], \
+            [26, 27, 28, 29, 30], [27, 28, 29, 30, 31], [28, 29, 30, 31, 32], [29, 30, 31, 32, 33], [30, 31, 32, 33, 34], [31, 32, 33, 34, 35], \
+            [32, 33, 34, 35, 36], [33, 34, 35, 36, 37], [34, 35, 36, 37, 38], [39, 40, 41, 42, 43], [40, 41, 42, 43, 44], [41, 42, 43, 44, 45], \
+            [42, 43, 44, 45, 46], [43, 44, 45, 46, 47], [44, 45, 46, 47, 48], [45, 46, 47, 48, 49], [46, 47, 48, 49, 50], [47, 48, 49, 50, 51]], \
+        'flush' : [[0, 1, 2, 3, 4], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], \
+            [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]]}
+#MUST DO (X % 13) BEFORE USING FLUSH IN DICTIONARY
+
+
 class Card(object):
     def __init__(self, number, inHand):
         self.number = number #number of card 0-51 (int)
-
-        # suit determined by floor(number / 10)
-        # Club(1),Diamond(2),Heart(3),Spade(4)
-        if number / 13 <= 4:
-            self.suit = 4  # Spade
-        if number / 13 <= 3:
-            self.suit = 3  # Heart
-        if number / 13 <= 2:
-            self.suit = 2  # Diamonds
-        if number / 13 <= 1:
-            self.suit = 1  # Clubs
-
+        #suit determined by floor(number / 10)
+        #Club,Diamond,Heart,Spade
         self.inHand = inHand #bool
-        # self.mod_number = number %
-
-    def __str__(self):
-        return self.number, self.suit
 
 
 class Hand(object):
-    def __init__(self, cards):
+    def __init__(self, cards, hands, prob):
         self.cards = cards #array of cards (int[])
+        self.hands = hands
         self.prob = prob #probability matrix/array
+    def generatePotential(self):
+        matchingSuitHands = []
+        matchingNumberHands = []
+        moduloCards = []
+        for card in self.cards:
+            #keep track of initial card suit
+            sameSuitTest = card / 13
+            #holders for checking matching suit and number
+            matchingSuitHand = []
+            matchingNumbers = []
+            #disregard suit for checking flush
+            moduloCards.append(card % 13)
+            for card2 in self.cards:
+                if (card2 / 13) == sameSuitTest:
+                    matchingSuitHand.append(card2)
+                if (card2 % 13) == (card % 13):
+                    matchingNumbers.append(card2)
+            if len(matchingSuitHand) >= 5:
+                matchingSuitHands.append(matchingSuitHand)
+            if len(matchingNumbers) > 1:
+                matchingNumberHands.append(matchingNumbers)
+
+        #NEED TO DETERMINE LIKELY AND SUM
+        #NEED PROGRESS FOR FULL HOUSE
+        #^^^ I think I'll check the PotentialHands for pairs and 3 of a kind to avoid gross code
+
+        #check for royal flush
+        if self.cards in hands['royal_flush']: #if cards match list from dict key, search for index of matching list and get list[index]
+            hands.append(PotentialHand(1, 1, 1, hands['royal_flush'][hands['royal_flush'].index(self.cards)], []))
+
+        #check for straight flush
+        if self.cards in hands['straight_flush']:
+            hands.append(PotentialHand(1, 1, 1, hands['straight_flush'][hands['royal_flush'].index(self.cards)], []))
+
+        #check for flush
+        if moduloCards in hands['flush']:
+            hands.append(PotentialHand(1, 1, 1, hands['flush'][hands['flush'].index(self.cards)], []))
+
+        #check for matching number
+        for numlist in matchingNumberHands:
+            #find need by checking which cards of the number are not in the current list
+            need = []
+            cardnum = numlist[0] % 13
+            for num in [cardnum, cardnum + 13, cardnum + 26, cardnum + 39]:
+                if num not in numlist:
+                    need.append(num)
+            if len(numlist) == 4:
+                hands.append(PotentialHand(100, 1, 1, numlist, [])) #4 of a kind
+            if len(numlist) == 3:
+                hands.append(PotentialHand(100, 1, 1, numlist, [])) #3 of a kind
+                hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 4 of a kind
+            if len(numlist) == 2:
+                hands.append(PotentialHand(100, 1, 1, numlist, [])) #pair
+                hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 3 of a kind
+                hands.append(PotentialHand(50, 1, 1, numlist, need)) #partial 4 of a kind
+
+        #check for matching suit
+        for numlist in matchingSuitHands:
+            #find need by checking which cards of the suit are not in the current list
+            cardsuit = numlist[0] / 13
+            for num in range(0+13(cardsuit),(12+13(cardsuit))+1):
+                if num not in numlist:
+                    need.append(num)
+            if len(numlist) == 4:
+                hands.append(PotentialHand(80, 1, 1, numlist, need)) #4 of matching suit
+            if len(numlist) == 3:
+                hands.append(PotentialHand(60, 1, 1, numlist, need)) #3 of matching suit
+            if len(numlist) == 2:
+                hands.append(PotentialHand(40, 1, 1, numlist, need)) #2 of matching suit
 
 
 class Table(object):
