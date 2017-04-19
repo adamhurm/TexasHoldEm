@@ -155,11 +155,55 @@ class WeightMatrix(object):
         print(self.cards)
 
 
-
 class Game(object):
 
-    def __init__(self):
-        self.chips = Chips
+    def __init__(self, chips, table, hand, potential_hand, ActionObject):
+        self.chips = chips
+        self.table = table
+        self.hand = hand
+        self.round_number = ActionObject.round_number
+        self.potential_hands = potential_hand
+        self.has_completed = False
+        self.has_partial_complete = False
+        self.action = self.act(ActionObject)
+
+        for potential in self.potential_hands:
+            if potential.completed == 1:
+                self.has_completed = True
+            if potential.completed > .75:
+                self.has_partial_complete = True
+
+    def act(self, ActionObject):
+        if ActionObject.action == "Check":  # We can add a condition later that bets if we have a hand of a given score
+            return self.check_procedure()
+
+        if ActionObject.action == "Bet":
+            return self.raise_procedure(ActionObject.raise_size)
+
+    def check_procedure(self):
+        # if self.round_number >= 3:
+        return "Check"
+
+    def raise_procedure(self, raise_size):
+        # Betting procedure for the first round, if we have completed stay in else fold
+        if self.round_number < 1:
+            if self.has_completed:
+                return "Raise", raise_size
+            else:
+                return "Fold"
+
+        if self.has_completed or self.has_partial_complete:
+            return "Raise", raise_size
+
+
+# A dummy class used to simulate the data structure given to us by the simulation
+class ActionObject(object):
+
+    def __init__(self, round_number, action_needed, max_bet_size, cards_on_table):
+        self.round_number = round_number
+        self.action = action_needed
+        self.max_bet_size = max_bet_size
+        self.cards_on_table = cards_on_table
 
 
 
