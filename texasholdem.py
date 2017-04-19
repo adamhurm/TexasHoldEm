@@ -25,17 +25,26 @@ hands = {'royal_flush' : [[51, 50, 49, 48, 47], [39, 38, 37, 36, 35, 34], [25, 2
 
 
 class Card(object):
-    def __init__(self, number, inHand):
+    def __init__(self, number, in_hand):
         self.number = number #number of card 0-51 (int)
         #suit determined by floor(number / 10)
         #Club,Diamond,Heart,Spade
-        self.inHand = inHand #bool
+        self.in_hand = in_hand #bool
+
+
+class PotentialHand(object):
+    def __init__(self, complete, likely, sum, have, need):
+        self.complete = complete
+        self.likely = likely
+        self.sum = sum
+        self.have = have
+        self.need = need
 
 
 class Hand(object):
-    def __init__(self, cards, hands, prob):
+    def __init__(self, cards, potential_hands, prob):
         self.cards = cards #array of cards (int[])
-        self.hands = hands
+        self.potential_hands = potential_hands
         self.prob = prob #probability matrix/array
     def generatePotential(self):
         matchingSuitHands = []
@@ -64,16 +73,16 @@ class Hand(object):
         #^^^ I think I'll check the PotentialHands for pairs and 3 of a kind to avoid gross code
 
         #check for royal flush
-        if self.cards in hands['royal_flush']: #if cards match list from dict key, search for index of matching list and get list[index]
-            hands.append(PotentialHand(1, 1, 1, hands['royal_flush'][hands['royal_flush'].index(self.cards)], []))
+        if self.cards in potential_hands['royal_flush']: #if cards match list from dict key, search for index of matching list and get list[index]
+            potential_hands.append(PotentialHand(1, 1, 1, potential_hands['royal_flush'][potential_hands['royal_flush'].index(self.cards)], []))
 
         #check for straight flush
-        if self.cards in hands['straight_flush']:
-            hands.append(PotentialHand(1, 1, 1, hands['straight_flush'][hands['royal_flush'].index(self.cards)], []))
+        if self.cards in potential_hands['straight_flush']:
+            potential_hands.append(PotentialHand(1, 1, 1, potential_hands['straight_flush'][potential_hands['royal_flush'].index(self.cards)], []))
 
         #check for flush
-        if moduloCards in hands['flush']:
-            hands.append(PotentialHand(1, 1, 1, hands['flush'][hands['flush'].index(self.cards)], []))
+        if moduloCards in potential_hands['flush']:
+            potential_hands.append(PotentialHand(1, 1, 1, potential_hands['flush'][potential_hands['flush'].index(self.cards)], []))
 
         #check for matching number
         for numlist in matchingNumberHands:
@@ -84,14 +93,14 @@ class Hand(object):
                 if num not in numlist:
                     need.append(num)
             if len(numlist) == 4:
-                hands.append(PotentialHand(100, 1, 1, numlist, [])) #4 of a kind
+                potential_hands.append(PotentialHand(100, 1, 1, numlist, [])) #4 of a kind
             if len(numlist) == 3:
-                hands.append(PotentialHand(100, 1, 1, numlist, [])) #3 of a kind
-                hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 4 of a kind
+                potential_hands.append(PotentialHand(100, 1, 1, numlist, [])) #3 of a kind
+                potential_hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 4 of a kind
             if len(numlist) == 2:
-                hands.append(PotentialHand(100, 1, 1, numlist, [])) #pair
-                hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 3 of a kind
-                hands.append(PotentialHand(50, 1, 1, numlist, need)) #partial 4 of a kind
+                potential_hands.append(PotentialHand(100, 1, 1, numlist, [])) #pair
+                potential_hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 3 of a kind
+                potential_hands.append(PotentialHand(50, 1, 1, numlist, need)) #partial 4 of a kind
 
         #check for matching suit
         for numlist in matchingSuitHands:
@@ -101,11 +110,11 @@ class Hand(object):
                 if num not in numlist:
                     need.append(num)
             if len(numlist) == 4:
-                hands.append(PotentialHand(80, 1, 1, numlist, need)) #4 of matching suit
+                potential_hands.append(PotentialHand(80, 1, 1, numlist, need)) #4 of matching suit
             if len(numlist) == 3:
-                hands.append(PotentialHand(60, 1, 1, numlist, need)) #3 of matching suit
+                potential_hands.append(PotentialHand(60, 1, 1, numlist, need)) #3 of matching suit
             if len(numlist) == 2:
-                hands.append(PotentialHand(40, 1, 1, numlist, need)) #2 of matching suit
+                potential_hands.append(PotentialHand(40, 1, 1, numlist, need)) #2 of matching suit
 
 
 class Table(object):
