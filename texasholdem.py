@@ -47,26 +47,26 @@ class Hand(object):
         self.potential_hands = potential_hands
         self.prob = prob #probability matrix/array
     def generatePotential(self):
-        matchingSuitHands = []
-        matchingNumberHands = []
+        matching_suit_hands = []
+        matching_number_hands = []
         moduloCards = []
         for card in self.cards:
             #keep track of initial card suit
             sameSuitTest = card / 13
             #holders for checking matching suit and number
-            matchingSuitHand = []
-            matchingNumbers = []
+            matching_suit_hand = []
+            matching_numbers = []
             #disregard suit for checking flush
             moduloCards.append(card % 13)
             for card2 in self.cards:
                 if (card2 / 13) == sameSuitTest:
-                    matchingSuitHand.append(card2)
+                    matching_suit_hand.append(card2)
                 if (card2 % 13) == (card % 13):
-                    matchingNumbers.append(card2)
-            if len(matchingSuitHand) >= 5:
-                matchingSuitHands.append(matchingSuitHand)
-            if len(matchingNumbers) > 1:
-                matchingNumberHands.append(matchingNumbers)
+                    matching_numbers.append(card2)
+            if len(matching_suit_hand) >= 5:
+                matching_suit_hands.append(matching_suit_hand)
+            if len(matching_numbers) > 1:
+                matching_number_hands.append(matching_numbers)
 
         #NEED TO DETERMINE LIKELY AND SUM
         #NEED PROGRESS FOR FULL HOUSE
@@ -85,7 +85,7 @@ class Hand(object):
             potential_hands.append(PotentialHand(1, 1, 1, potential_hands['flush'][potential_hands['flush'].index(self.cards)], []))
 
         #check for matching number
-        for numlist in matchingNumberHands:
+        for numlist in matching_number_hands:
             #find need by checking which cards of the number are not in the current list
             need = []
             cardnum = numlist[0] % 13
@@ -103,7 +103,7 @@ class Hand(object):
                 potential_hands.append(PotentialHand(50, 1, 1, numlist, need)) #partial 4 of a kind
 
         #check for matching suit
-        for numlist in matchingSuitHands:
+        for numlist in matching_suit_hands:
             #find need by checking which cards of the suit are not in the current list
             cardsuit = numlist[0] / 13
             for num in range(0+13(cardsuit),(12+13(cardsuit))+1):
