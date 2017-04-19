@@ -140,46 +140,22 @@ class Chips(object):
         return self.history[move]
 
 
-class WeightMatrix(object):
-
-    def __init__(self):
-       # self.cards = cards #array of cards (int[])
-        self.cards = []
-        self.cards_already_examined = []
-        self.current_hand_value = 0
-        self.cards.append(20) # This accounts for 0 being Two
-
-        for i in range(1, 52):  # This just populates the matrix with
-            mod_val = i % 13
-            if mod_val == 0:  # This if statement is necessary because 0 = Two and 12 = Ace
-                if i == 13 or i == 26 or i == 39 or i == 52:
-                    self.cards.append(20)
-            else:
-                self.cards.append(mod_val * 10 + 20)  # Add 20 to account for 0 == Two
-
-    def update(self, cards):
-        return
-
-    def display(self):
-        print(self.cards)
-
-
 class Game(object):
 
-    def __init__(self, chips, table, hand, potential_hand, ActionObject):
+    def __init__(self, chips, table, hand, ActionObject):
         self.chips = chips
         self.table = table
         self.hand = hand
         self.round_number = ActionObject.round_number
-        self.potential_hands = potential_hand
+        self.potential_hands = self.hand.potential_hands
         self.has_completed = False
         self.has_partial_complete = False
-        self.action = self.act(ActionObject)
+        # self.action = self.act(ActionObject)
 
         for potential in self.potential_hands:
-            if potential.completed == 1:
+            if potential.complete == 1:
                 self.has_completed = True
-            if potential.completed > .75:
+            if potential.complete > .75:
                 self.has_partial_complete = True
 
     def act(self, ActionObject):
@@ -195,7 +171,7 @@ class Game(object):
 
     def raise_procedure(self, raise_size):
         # Betting procedure for the first round, if we have completed stay in else fold
-        if self.round_number < 1:
+        if self.round_number <= 1:
             if self.has_completed:
                 return "Raise", raise_size
             else:
@@ -208,14 +184,37 @@ class Game(object):
 # A dummy class used to simulate the data structure given to us by the simulation
 class ActionObject(object):
 
-    def __init__(self, round_number, action_needed, max_bet_size, cards_on_table):
+    def __init__(self, round_number, action_needed, max_bet_size, raise_size, cards_on_table):
         self.round_number = round_number
         self.action = action_needed
         self.max_bet_size = max_bet_size
+        self.raise_size = raise_size
         self.cards_on_table = cards_on_table
 
 
+#
+# class WeightMatrix(object):
+#
+#     def __init__(self):
+#        # self.cards = cards #array of cards (int[])
+#         self.cards = []
+#         self.cards_already_examined = []
+#         self.current_hand_value = 0
+#         self.cards.append(20) # This accounts for 0 being Two
+#
+#         for i in range(1, 52):  # This just populates the matrix with
+#             mod_val = i % 13
+#             if mod_val == 0:  # This if statement is necessary because 0 = Two and 12 = Ace
+#                 if i == 13 or i == 26 or i == 39 or i == 52:
+#                     self.cards.append(20)
+#             else:
+#                 self.cards.append(mod_val * 10 + 20)  # Add 20 to account for 0 == Two
+#
+#     def update(self, cards):
+#         return
+#
+#     def display(self):
+#         print(self.cards)
 
 
-p = WeightMatrix()
-p.display()
+
