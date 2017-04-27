@@ -24,7 +24,8 @@ hands = {'royal_flush' : [[51, 50, 49, 48, 47], [39, 38, 37, 36, 35, 34], [25, 2
         'flush' : [[0, 1, 2, 3, 4], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], \
             [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]]}
 
-classes_need = {} #number of cards needed for a class
+classes_need = {'royal_flush' : 5, 'straight_flush' : 5, "four_kind" : 4, 'full_house' : 5, \
+                'flush' : 5, 'straight' : 5, 'three_kind' : 3, 'two_pair': 4, 'pair': 2} #number of cards needed for a class
 deucify = {} #might need to be function, create deuces Card out of int
 #MUST DO (X % 13) BEFORE USING FLUSH IN DICTIONARY
 
@@ -150,10 +151,14 @@ class Hand(object):
                     maxthree = three
             if pairs and threes:
                 potential_hands.append(PotentialHand(100, 1, score, maxpair.extend(maxthree)))
-            if pairs:
-                potential_hands.append(PotentialHand(100, 1, score, maxpair)) #possibly rethink need
             if threes:
-                potential_hands.append(PotentialHand(100, 1, score, maxthree) #possibly rethink need
+                potential_hands.append(PotentialHand(100, 1, score, maxthree)
+            if len(pairs) >= 2:
+                potential_hands.append(PotentialHand(100, 1, score, pairs[0].extend(pairs[1])))
+            if len(pairs) == 1:
+                potential_hands.append(PotentialHand(100, 1, score, maxpair))
+                potential_hands.append(PotentialHand(50, 1, score, maxpair))
+            
 
 
 class Table(object):
