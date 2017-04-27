@@ -1,3 +1,5 @@
+from deuces import Evaluator
+from deuces import Card
 #for every card c in Hand H, x = c % 13
 #royal_flush = [12, 11, 10, 9, 8] and same_suit
 #straight_flush = straight and same_suit
@@ -21,36 +23,43 @@ hands = {'royal_flush' : [[51, 50, 49, 48, 47], [39, 38, 37, 36, 35, 34], [25, 2
             [42, 43, 44, 45, 46], [43, 44, 45, 46, 47], [44, 45, 46, 47, 48], [45, 46, 47, 48, 49], [46, 47, 48, 49, 50], [47, 48, 49, 50, 51]], \
         'flush' : [[0, 1, 2, 3, 4], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], \
             [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]]}
+
+classes_need = {} #number of cards needed for a class
+deucify = {} #might need to be function, create deuces Card out of int
 #MUST DO (X % 13) BEFORE USING FLUSH IN DICTIONARY
 
 
 class Card(object):
     def __init__(self, number, in_hand):
         self.number = number #number of card 0-51 (int)
-        #suit determined by floor(number / 10)
+        #suit determined by floor(number / 13)
         #Club,Diamond,Heart,Spade
         self.in_hand = in_hand #bool
 
 
 class PotentialHand(object):
-    def __init__(self, complete, likely, sum, have, need):
+    def __init__(self, complete, likely, sum, have, rank):
         self.complete = complete
         self.likely = likely
         self.sum = sum
         self.have = have
-        self.need = need
+        self.rank = rank
 
 
 class Hand(object):
-    def __init__(self, cards, potential_hands, prob):
+    def __init__(self, cards, table, potential_hands):
         self.cards = cards #array of cards (int[])
+        self.board = table.cards
         self.potential_hands = potential_hands
-        self.prob = prob #probability matrix/array
     def generatePotential(self):
         matching_suit_hands = []
         matching_number_hands = []
         moduloCards = []
-        for card in self.cards:
+        cards = [] #will replace self.cards for poker.py
+        cards.append(self.cards)
+        cards.append(self.board)
+
+        for card in cards:
             #keep track of initial card suit
             sameSuitTest = card / 13
             #holders for checking matching suit and number
@@ -58,7 +67,7 @@ class Hand(object):
             matching_numbers = []
             #disregard suit for checking flush
             moduloCards.append(card % 13)
-            for card2 in self.cards:
+            for card2 in cards:
                 if (card2 / 13) == sameSuitTest:
                     matching_suit_hand.append(card2)
                 if (card2 % 13) == (card % 13):
@@ -69,20 +78,23 @@ class Hand(object):
                 matching_number_hands.append(matching_numbers)
 
         #NEED TO DETERMINE LIKELY AND SUM
-        #NEED PROGRESS FOR FULL HOUSE
-        #^^^ I think I'll check the PotentialHands for pairs and 3 of a kind to avoid gross code
+
+        score = evaluator.evaluate(self.cards, self.table)
 
         #check for royal flush
-        if self.cards in potential_hands['royal_flush']: #if cards match list from dict key, search for index of matching list and get list[index]
-            potential_hands.append(PotentialHand(1, 1, 1, potential_hands['royal_flush'][potential_hands['royal_flush'].index(self.cards)], []))
+        if self.cards in hands['royal_flush']: #if cards match list from dict key, search for index of matching list and get list[index]
+            keep = hands['royal_flush'][hands['royal_flush'].index(self.cards)]
+            self.potential_hands.append(PotentialHand(100, 1, score, keep, []))
 
         #check for straight flush
-        if self.cards in potential_hands['straight_flush']:
-            potential_hands.append(PotentialHand(1, 1, 1, potential_hands['straight_flush'][potential_hands['royal_flush'].index(self.cards)], []))
+        if self.cards in hands['straight_flush']:
+            keep = hands['straight_flush'][hands['royal_flush'].index(self.cards)]
+            self.potential_hands.append(PotentialHand(100, 1, score, keep, []))
 
         #check for flush
-        if moduloCards in potential_hands['flush']:
-            potential_hands.append(PotentialHand(1, 1, 1, potential_hands['flush'][potential_hands['flush'].index(self.cards)], []))
+        if moduloCards in hands['flush']:
+            keep = hands['flush'][hands['flush'].index(self.cards)]
+            self.potential_hands.append(PotentialHand(100, 1, score, keep, []))
 
         #check for matching number
         for numlist in matching_number_hands:
@@ -93,14 +105,14 @@ class Hand(object):
                 if num not in numlist:
                     need.append(num)
             if len(numlist) == 4:
-                potential_hands.append(PotentialHand(100, 1, 1, numlist, [])) #4 of a kind
+                potential_hands.append(PotentialHand(100, 1, score, numlist, [])) #4 of a kind
             if len(numlist) == 3:
-                potential_hands.append(PotentialHand(100, 1, 1, numlist, [])) #3 of a kind
-                potential_hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 4 of a kind
+                potential_hands.append(PotentialHand(100, 1, score, numlist, [])) #3 of a kind
+                potential_hands.append(PotentialHand(75, 1, score, numlist, need)) #partial 4 of a kind
             if len(numlist) == 2:
-                potential_hands.append(PotentialHand(100, 1, 1, numlist, [])) #pair
-                potential_hands.append(PotentialHand(75, 1, 1, numlist, need)) #partial 3 of a kind
-                potential_hands.append(PotentialHand(50, 1, 1, numlist, need)) #partial 4 of a kind
+                potential_hands.append(PotentialHand(100, 1, score, numlist, [])) #pair
+                potential_hands.append(PotentialHand(75, 1, score, numlist, need)) #partial 3 of a kind
+                potential_hands.append(PotentialHand(50, 1, score, numlist, need)) #partial 4 of a kind
 
         #check for matching suit
         for numlist in matching_suit_hands:
@@ -110,11 +122,38 @@ class Hand(object):
                 if num not in numlist:
                     need.append(num)
             if len(numlist) == 4:
-                potential_hands.append(PotentialHand(80, 1, 1, numlist, need)) #4 of matching suit
+                potential_hands.append(PotentialHand(80, 1, score, numlist, need)) #4 of matching suit
             if len(numlist) == 3:
-                potential_hands.append(PotentialHand(60, 1, 1, numlist, need)) #3 of matching suit
+                potential_hands.append(PotentialHand(60, 1, score, numlist, need)) #3 of matching suit
             if len(numlist) == 2:
-                potential_hands.append(PotentialHand(40, 1, 1, numlist, need)) #2 of matching suit
+                potential_hands.append(PotentialHand(40, 1, score, numlist, need)) #2 of matching suit
+        
+        pairs = []
+        threes = []
+        #gather complete pairs and 3ok's
+        for hand in potential_hands:
+            if hand.complete == 100:
+                if len(hand.have) == 3:
+                    threes.append(hand)
+                if len(hand.have == 2):
+                    pairs.append(hand)
+        #grab best pair and 3ok
+        if pairs or threes:
+            #if more than 
+            maxpair = []
+            for pair in pairs:
+                if (pair[0] % 13) > (maxpair[0] % 13):
+                    maxpair = pair
+            maxthree = []
+            for three in threes:
+                if (three[0] % 13) > (maxthree[0] % 13):
+                    maxthree = three
+            if pairs and threes:
+                potential_hands.append(PotentialHand(100, 1, score, maxpair.extend(maxthree)))
+            if pairs:
+                potential_hands.append(PotentialHand(100, 1, score, maxpair)) #possibly rethink need
+            if threes:
+                potential_hands.append(PotentialHand(100, 1, score, maxthree) #possibly rethink need
 
 
 class Table(object):
@@ -190,31 +229,3 @@ class ActionObject(object):
         self.max_bet_size = max_bet_size
         self.raise_size = raise_size
         self.cards_on_table = cards_on_table
-
-
-#
-# class WeightMatrix(object):
-#
-#     def __init__(self):
-#        # self.cards = cards #array of cards (int[])
-#         self.cards = []
-#         self.cards_already_examined = []
-#         self.current_hand_value = 0
-#         self.cards.append(20) # This accounts for 0 being Two
-#
-#         for i in range(1, 52):  # This just populates the matrix with
-#             mod_val = i % 13
-#             if mod_val == 0:  # This if statement is necessary because 0 = Two and 12 = Ace
-#                 if i == 13 or i == 26 or i == 39 or i == 52:
-#                     self.cards.append(20)
-#             else:
-#                 self.cards.append(mod_val * 10 + 20)  # Add 20 to account for 0 == Two
-#
-#     def update(self, cards):
-#         return
-#
-#     def display(self):
-#         print(self.cards)
-
-
-
