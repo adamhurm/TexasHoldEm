@@ -139,7 +139,6 @@ class Hand(object):
                     pairs.append(hand)
         #grab best pair and 3ok
         if pairs or threes:
-            #if more than
             maxpair = []
             for pair in pairs:
                 if (pair[0] % 13) > (maxpair[0] % 13):
@@ -195,9 +194,9 @@ class Game(object):
         # self.action = self.act(ActionObject)
 
         for potential in self.potential_hands:
-            if potential.complete == 1:
+            if potential.complete == 100:
                 self.has_completed = True
-            if potential.complete > .75:
+            if potential.complete > 75:
                 self.has_partial_complete = True
 
     def act(self, ActionObject):
