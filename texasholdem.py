@@ -23,11 +23,15 @@ hands = {'royal_flush' : [[51, 50, 49, 48, 47], [39, 38, 37, 36, 35, 34], [25, 2
             [42, 43, 44, 45, 46], [43, 44, 45, 46, 47], [44, 45, 46, 47, 48], [45, 46, 47, 48, 49], [46, 47, 48, 49, 50], [47, 48, 49, 50, 51]], \
         'flush' : [[0, 1, 2, 3, 4], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], \
             [6, 7, 8, 9, 10], [7, 8, 9, 10, 11], [8, 9, 10, 11, 12]]}
+#MUST DO (X % 13) BEFORE USING FLUSH IN DICTIONARY
 
 classes_need = {'royal_flush' : 5, 'straight_flush' : 5, "four_kind" : 4, 'full_house' : 5, \
                 'flush' : 5, 'straight' : 5, 'three_kind' : 3, 'two_pair': 4, 'pair': 2} #number of cards needed for a class
-deucify = {} #might need to be function, create deuces Card out of int
-#MUST DO (X % 13) BEFORE USING FLUSH IN DICTIONARY
+
+deucify_dict = ['Ac', '2c', '3c', '4c', '5c', '6c', '7c', '8c', '9c', '10c', 'Jc', 'Qc', 'Kc', \
+                'Ad', '2d', '3d', '4d', '5d', '6d', '7d', '8d', '9d', '10d', 'Jd', 'Qd', 'Kd', \
+                'Ah', '2h', '3h', '4h', '5h', '6h', '7h', '8h', '9h', '10h', 'Jh', 'Qh', 'Kh', \
+                'As', '2s', '3s', '4s', '5s', '6s', '7s', '8s', '9s', '10s', 'Js', 'Qs', 'Ks']
 
 
 class Card(object):
@@ -51,6 +55,13 @@ class Hand(object):
         self.cards = cards #array of cards (int[])
         self.board = table.cards
         self.potential_hands = potential_hands
+
+    def deucify(int[] cards):
+        newcards = []
+        for card in cards:
+            newcards.append(Card.new(deucify[card]))
+        return newcards
+
     def generatePotential(self):
         matching_suit_hands = []
         matching_number_hands = []
@@ -76,8 +87,6 @@ class Hand(object):
                 matching_suit_hands.append(matching_suit_hand)
             if len(matching_numbers) > 1:
                 matching_number_hands.append(matching_numbers)
-
-        #NEED TO DETERMINE LIKELY AND SUM
 
         score = evaluator.evaluate(self.cards, self.table)
 
