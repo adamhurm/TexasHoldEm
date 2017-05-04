@@ -39,9 +39,8 @@ class Card(object):
 
 
 class PotentialHand(object):
-    def __init__(self, complete, likely, sum, have, rank):
+    def __init__(self, complete, sum, have, rank):
         self.complete = complete
-        self.likely = likely
         self.sum = sum
         self.have = have
         self.rank = rank
@@ -85,17 +84,17 @@ class Hand(object):
         #check for royal flush
         if self.cards in hands['royal_flush']: #if cards match list from dict key, search for index of matching list and get list[index]
             keep = hands['royal_flush'][hands['royal_flush'].index(self.cards)]
-            self.potential_hands.append(PotentialHand(100, 1, score, keep, []))
+            self.potential_hands.append(PotentialHand(100, score, keep, []))
 
         #check for straight flush
         if self.cards in hands['straight_flush']:
             keep = hands['straight_flush'][hands['royal_flush'].index(self.cards)]
-            self.potential_hands.append(PotentialHand(100, 1, score, keep, []))
+            self.potential_hands.append(PotentialHand(100, score, keep, []))
 
         #check for flush
         if moduloCards in hands['flush']:
             keep = hands['flush'][hands['flush'].index(self.cards)]
-            self.potential_hands.append(PotentialHand(100, 1, score, keep, []))
+            self.potential_hands.append(PotentialHand(100, score, keep, []))
 
         #check for matching number
         for numlist in matching_number_hands:
@@ -106,14 +105,14 @@ class Hand(object):
                 if num not in numlist:
                     need.append(num)
             if len(numlist) == 4:
-                potential_hands.append(PotentialHand(100, 1, score, numlist, [])) #4 of a kind
+                potential_hands.append(PotentialHand(100, score, numlist, [])) #4 of a kind
             if len(numlist) == 3:
-                potential_hands.append(PotentialHand(100, 1, score, numlist, [])) #3 of a kind
-                potential_hands.append(PotentialHand(75, 1, score, numlist, need)) #partial 4 of a kind
+                potential_hands.append(PotentialHand(100, score, numlist, [])) #3 of a kind
+                potential_hands.append(PotentialHand(75, score, numlist, need)) #partial 4 of a kind
             if len(numlist) == 2:
-                potential_hands.append(PotentialHand(100, 1, score, numlist, [])) #pair
-                potential_hands.append(PotentialHand(75, 1, score, numlist, need)) #partial 3 of a kind
-                potential_hands.append(PotentialHand(50, 1, score, numlist, need)) #partial 4 of a kind
+                potential_hands.append(PotentialHand(100, score, numlist, [])) #pair
+                potential_hands.append(PotentialHand(75, score, numlist, need)) #partial 3 of a kind
+                potential_hands.append(PotentialHand(50, score, numlist, need)) #partial 4 of a kind
 
         #check for matching suit
         for numlist in matching_suit_hands:
@@ -123,11 +122,11 @@ class Hand(object):
                 if num not in numlist:
                     need.append(num)
             if len(numlist) == 4:
-                potential_hands.append(PotentialHand(80, 1, score, numlist, need)) #4 of matching suit
+                potential_hands.append(PotentialHand(80, score, numlist, need)) #4 of matching suit
             if len(numlist) == 3:
-                potential_hands.append(PotentialHand(60, 1, score, numlist, need)) #3 of matching suit
+                potential_hands.append(PotentialHand(60, score, numlist, need)) #3 of matching suit
             if len(numlist) == 2:
-                potential_hands.append(PotentialHand(40, 1, score, numlist, need)) #2 of matching suit
+                potential_hands.append(PotentialHand(40, score, numlist, need)) #2 of matching suit
         
         pairs = []
         threes = []
@@ -140,7 +139,7 @@ class Hand(object):
                     pairs.append(hand)
         #grab best pair and 3ok
         if pairs or threes:
-            #if more than 
+            #if more than
             maxpair = []
             for pair in pairs:
                 if (pair[0] % 13) > (maxpair[0] % 13):
@@ -150,15 +149,14 @@ class Hand(object):
                 if (three[0] % 13) > (maxthree[0] % 13):
                     maxthree = three
             if pairs and threes:
-                potential_hands.append(PotentialHand(100, 1, score, maxpair.extend(maxthree)))
+                potential_hands.append(PotentialHand(100, score, maxpair.extend(maxthree)))
             if threes:
-                potential_hands.append(PotentialHand(100, 1, score, maxthree)
+                potential_hands.append(PotentialHand(100, score, maxthree)
             if len(pairs) >= 2:
-                potential_hands.append(PotentialHand(100, 1, score, pairs[0].extend(pairs[1])))
+                potential_hands.append(PotentialHand(100, score, pairs[0].extend(pairs[1])))
             if len(pairs) == 1:
-                potential_hands.append(PotentialHand(100, 1, score, maxpair))
-                potential_hands.append(PotentialHand(50, 1, score, maxpair))
-            
+                potential_hands.append(PotentialHand(100, score, maxpair))
+                potential_hands.append(PotentialHand(50, score, maxpair))
 
 
 class Table(object):
