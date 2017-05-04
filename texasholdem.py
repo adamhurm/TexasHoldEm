@@ -41,7 +41,9 @@ class Card(object):
         #Club,Diamond,Heart,Spade
         self.in_hand = in_hand #bool
 
-
+# PotentialHand are the hands that we can possibly have. This means that if we have cards
+#  [2Hearts, 3Hearts, 4Heart, 5Hearts, 2Spades] we can potentially have a straight with Heart cards but we also
+#   Have a pair with the 2s
 class PotentialHand(object):
     def __init__(self, complete, sum, have, rank):
         self.complete = complete
@@ -49,7 +51,8 @@ class PotentialHand(object):
         self.have = have
         self.rank = rank
 
-
+# Hand models the cards that we can use as a "Hand". This includes the cards dealt directly to use as well as
+# the cards on the table
 class Hand(object):
     def __init__(self, cards, table, potential_hands):
         self.cards = cards #array of cards (int[])
@@ -166,13 +169,13 @@ class Hand(object):
                 potential_hands.append(PotentialHand(100, score, maxpair))
                 potential_hands.append(PotentialHand(50, score, maxpair))
 
-
+# Table class models that cards in the river as well as the chips being played
 class Table(object):
     def __init__(self, cards, pot):
         self.cards = cards #array of cards (int[])
         self.pot = pot #number of chips (int)
 
-
+# Simple class to model our chips and maintain history of our moves
 class Chips(object):
     def __init__(self, chips, history):
         self.chips = chips #number of chips (int)
@@ -190,17 +193,18 @@ class Chips(object):
         return self.history[move]
 
 
-class Game(object):
+# Player is the main class that acts. It receives chips, a table, potential_hands, and an ActionObject then acts
+#   in regards to the actions requested by the ActionObject
+class Player(object):
 
-    def __init__(self, chips, table, hand, ActionObject):
+    def __init__(self, chips, table, potential_hand, ActionObject):
         self.chips = chips
         self.table = table
-        self.hand = hand
+        self.hand = potential_hand
         self.round_number = ActionObject.round_number
         self.potential_hands = self.hand.potential_hands
         self.has_completed = False
         self.has_partial_complete = False
-        # self.action = self.act(ActionObject)
 
         for potential in self.potential_hands:
             if potential.complete == 100:
@@ -208,15 +212,23 @@ class Game(object):
             if potential.complete > 75:
                 self.has_partial_complete = True
 
-    def act(self, ActionObject):
-        if ActionObject.action == "Check":  # We can add a condition later that bets if we have a hand of a given score
+    # Receives an ActionObject and returns a procedure based on the request of the ActionObject
+    def act(self, action_object):
+        if action_object.action == "Check":  # We can add a condition later that bets if we have a hand of a given score
             return self.check_procedure()
 
         if ActionObject.action == "Bet":
-            return self.raise_procedure(ActionObject.raise_size)
+            return self.raise_procedure(action_object.raise_size)
 
     def check_procedure(self):
-        # if self.round_number >= 3:
+        # If it is above the 3rd round and we have a hand that is more than 75% complete then check, else fold
+        if self.round_number >= 3:
+            if self.hand[1].complete > 75:
+                return "Check"
+            else:
+                return "Fold"
+
+        #If it is not greater than the third round, just check
         return "Check"
 
     def raise_procedure(self, raise_size):
@@ -232,6 +244,7 @@ class Game(object):
 
 
 # A dummy class used to simulate the data structure given to us by the simulation
+# The ActionObject is used to model what the simulation would ask us.
 class ActionObject(object):
 
     def __init__(self, round_number, action_needed, max_bet_size, raise_size, cards_on_table):
