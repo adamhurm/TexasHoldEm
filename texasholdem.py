@@ -1,3 +1,8 @@
+#Ari Korin and Adam Hurm
+#B351 Final Project
+#Spring 2017
+
+
 from deuces import Evaluator
 from deuces import Card
 
