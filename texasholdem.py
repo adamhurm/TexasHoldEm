@@ -1,5 +1,7 @@
 from deuces import Evaluator
 from deuces import Card
+
+#Calculating Hands:
 #for every card c in Hand H, x = c % 13
 #royal_flush = [12, 11, 10, 9, 8] and same_suit
 #straight_flush = straight and same_suit
@@ -11,8 +13,6 @@ from deuces import Card
 #pair = [x, x, y, z, a]
 #same_suit = (c / 13) == y
 #high_card = max(H)
-
-#Keeping the above for now but we can probably remove soon
 
 hands = {'royal_flush' : [[51, 50, 49, 48, 47], [39, 38, 37, 36, 35, 34], [25, 24, 23, 22, 21], [12, 11, 10, 9, 8]], \
         'straight_flush' : [[0, 1, 2, 3, 4], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [4, 5, 6, 7, 8], [5, 6, 7, 8, 9], \
@@ -45,11 +45,11 @@ class Card(object):
 #  [2Hearts, 3Hearts, 4Heart, 5Hearts, 2Spades] we can potentially have a straight with Heart cards but we also
 #   Have a pair with the 2s
 class PotentialHand(object):
-    def __init__(self, complete, sum, have, rank):
+    def __init__(self, complete, sum, have, need):
         self.complete = complete
         self.sum = sum
         self.have = have
-        self.rank = rank
+        self.need = need
 
 # Hand models the cards that we can use as a "Hand". This includes the cards dealt directly to use as well as
 # the cards on the table
