@@ -1,0 +1,111 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Wenneker Article
+% LaTeX Template
+% Version 2.0 (28/2/17)
+%
+% This template was downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Authors:
+% Vel (vel@LaTeXTemplates.com)
+% Frits Wenneker
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[10pt, a4paper, twocolumn]{article} % 10pt font size (11 and 12 also possible), A4 paper (letterpaper for US letter) and two column layout (remove for one column)
+
+\usepackage{listings}
+\lstset{breaklines=true}
+
+\input{structure.tex} % Specifies the document structure and loads requires packages
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{B351 AI Project: Texas Hold 'em} % The article title
+
+\author{
+	\authorstyle{Adam Hurm\textsuperscript{1} and Ari Korin\textsuperscript{1}} % Authors
+	\newline\newline % Space before institutions
+	\textsuperscript{1}\institution{Indiana University, Bloomington, IN, USA} % Institution 3
+}
+
+% Example of a one line author/institution relationship
+%\author{\newauthor{John Marston} \newinstitution{Universidad Nacional Autónoma de México, Mexico City, Mexico}}
+
+\date{\today} % Add a date here if you would like one to appear underneath the title block, use \today for the current date, leave empty for no date
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Print the title
+
+\thispagestyle{firstpage} % Apply the page style for the first page (no headers and footers)
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+\lettrineabstract{This paper explores the design and implementation of a Texas Hold’em artificial intelligence agent. The agent capable of placing bets, handling the procedure of the Texas Hold’em game, recognizing valuable hand combinations, and acting on the information presented to it. The implementation explained in this paper may be used as a framework for future Texas Hold’em agents.}
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\section{Introduction}
+
+Games are a series of states. In each state of the game, there are actions that can be taken in order to move into another state. These actions often take the form of turns, physical movement of pieces, the picking of cards, or other factors that change the current state of affairs. In a given state, players will want to choose the optimal state to move to such as the state in which a player wins chips or an opponent is forced into a difficult position. 
+	
+	Games are fascinating from an artificial intelligence perspective because they are difficult to completely “solve”. There are many different types of games. Some games involve unpredictability and random events, these games are known as stochastic games \citep{Reference1}. Others games are deterministic, meaning all states of the game have been reached through the actions the player has made without external influence. Many games restrict the information that each player has on the actions of opponent players. As such, in some games, agents are required to make decisions based on partial information or assumptions about how an opponent would act in a given state. Texas Hold’em is an interesting to explore because of its deterministic nature and the fact that players are not able to see other players’ hands; Texas Hold’em is only partially observable. 
+
+%------------------------------------------------
+
+\section{Playing Texas Hold'em as an AI Problem}
+
+Our initial plan for the agent relied on calculating probabilities and basing our actions on those calculations. We would have a matrix of probabilities of achieving a good hand given our own cards and the cards on the table. As we progressed, we found that this method made it difficult to calculate multiple hands without the array blowing out of proportion, having wasted space, or being generally difficult to access components within the structure. We refreshed our approach by instead calculating what we call a PotentialHand and keeping an array of them. Each turn the cards on the table and in hand would be analyzed, and any set of cards within those that made significant progress toward a completed hand would create a PotentialHand. The PotentialHand created would contain the percentage of completion of the hand, the score of the hand as it stands, which cards the agent has that partially complete the hand, and which cards it would need to complete the hand. More simply put: completion, score, have, need. Then when our agent has to return our best hand, it can easily check the array for a PotentialHand with 100 percent completion and the highest score and return the cards. The PotentialHands structure also provides helpful turn-by-turn information for checking how many partially completed hands are over a certain completion and score threshold. That feedback can be used to play more aggressively or passively depending on how good the situation appears. The need array can be used to determine which cards are needed to complete the hand and check them against the game history to see which of the cards are potentially still available. For example, if the agent is one card away from a royal flush but it finds that the card needed to complete it has already been taken out of the game, then the hand is no longer possible and it should look at other options. Otherwise, the agent would likely go all in or play very aggressively for a hand that could never be completed. The completion percentage is also used to fold in a case of not having any completed hand when nearing the end of the game to avoid unnecessary involvement that will likely only result in chip loss.
+
+
+	The actual building process of PotentialHands uses lookup tables to find hands matching criteria and individual checks of matching card numbers and suits by looping through and counting occurrences. The same set of cards may end up generating multiple PotentialHands. For example, encountering a pair will create PotentialHands for a pair with full completion, a three of a kind with almost full completion, and a four of a kind with half completion. It provides useful feedback for checking for flushes and matching card numbers, so the agent can then base its actions on the number of PotentialHands and their respective scores and completion percentages. Tracking and using our completed PotentialHands results in a much more conservative agent that only makes decisions based off of concrete hands with good levels of success. The agent is much more concerned with its own success than that of its opponents, only competing if it stands a good chance of success and for the most part ignoring others that might bluff. Unless the pot is raised to too high of a level for its current hand to be likely to win, it plays through and over multiple iterations should hopefully slowly collect chips by its more conservative play style.
+
+
+%------------------------------------------------
+
+\section{Code}
+Our PotentialHand concept is implemented as a class, with variables complete, sum, have, and need. The Hand class holds the cards in our hand, those on the table, and an array of PotentialHands. Its generatePotential method does the bulk of the calculations, using the deucify method and dictionary to convert hands to deuces format and check their score. In generatePotential, a loop runs and puts groups of cards of matching suits and numbers in their own array. These are used later to calculate progress or completion for pairs, three of a kinds, four of a kinds, and flushes. Then cards are checked against dictionaries for royal flushes and straight flushes and modulo’d cards are checked against a dictionary for a flush, with PotentialHands being generated accordingly. The dictionaries save computational work if we already have a full hand. In the next step, the matching number array is checked and pair, three of a kind, and four of a kind PotentialHands are generated. Following that is a check of the matching suit array for partially completed flushes and PotentialHand generation. Pairs and three of a kinds are then checked for a full house and the best pair and three of a kind are chosen if there are multiple. It then returns an array of the PotentialHands generated, giving the agent the data it needs to make decisions.
+
+	The Player class tracks all the different components of the game such as chips, table cards, cards in hand, round number, and PotentialHands, performing actions with the data. It checks the completion percentage and scores for our PotentialHands to determine the level of game involvement needed. The check procedure makes sure that we have at least a mostly completed hand before being involved past the “turn” round, otherwise it folds. The raise procedure will be constrained by the maximum raise size given to it by the action object, raising it when we have a completed hand.
+
+
+%------------------------------------------------
+
+\section{Results}
+It is difficult to measure the success of our implementation because it has not been completely unit tested and simulated. Although as it stands, our Texas Hold’em agent is a conservative player. As a result of our agent’s conservative player style, discussed in the prior section, our agent will most likely not make significant winnings. This is not to suggest that our agent does not function well but we have included strategies that prevent significant loss as well limiting risky moves that have the potential for big pay-offs. 
+	
+	The most impressive feature of the agent is its PotentialHands class. PotentialHands is a clever way to keep track of all possible winning card combinations as well as how complete each combination is. While PotentialHands is immensely useful in deciding which final hand to evaluate, it has room for increased functionality. A significant improvement in PotentialHands would be a better way evaluate the “type” a given hand in the list of potential hands. Currently we give each potential hand a score based on the deucify module. In addition to the deucify score, additional information such as the type of hand (i.e. is the hand a straight, a flush, a pair?) would be helpful in calculating which hand to use in the end. For example if the agent only needs one more card to complete a straight but already has a pair, the agent should prioritize completing the straight. Priority of hands in potential hands is based on the score given by deucify, but the type of hand should also be taken into account. 
+	
+	In addition to added functionality in PotentialHands, improvements in the agent’s action procedures would make the agent perform better. Currently, the procedure for betting, folding, and checking is rather simplistic. The procedure relies on whether there are any potential hands that are “completed”. While this may be sufficient to make the agent work, a more sophisticated suite of action procedures would improve the agent’s ability to win chips. An example of an additional procedure would be the use of bluffing by the agent. During development, the use of bluffing by the agent was not fully fleshed out. If further development were to occur, a bluffing procedure would be implemented as bluffing has the potential to be a powerful procedure in Texas Hold’em.
+	
+	There were very few things that went wrong during development. The main issue when developing the agent was understanding what data structures would need to be passed to the agent in order for it to act and meta-issues that involved small inconveniences that occurred as a result of two developers working on the same code-base. If we were to develop this agent from scratch again, we would focus on maintaining separate git branches as well as working on the structure of the agent before delving into the AI of the agent. Regardless of the small inconveniences that both of these caused, our agent is successful and has provided a rich learning experience.
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\printbibliography[title={Bibliography}] % Print the bibliography, section title in curly brackets
+%----------------------------------------------------------------------------------------
+\newpage
+\onecolumn
+\section{Code Appendix}
+\lstinputlisting[language=Python]{texasholdem.py}
+
+\end{document}
